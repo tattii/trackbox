@@ -150,7 +150,11 @@
 			
 			var file_modal = $.UIkit.modal("#file-modal");
 			if ( shared ){
-				$.ajax("/2014-11-31.json").done(parseJSON);
+				$.ajax({
+					type: "GET",
+					url: "/get",
+					data: { id: track_id }
+				}).done(parseJSON);
 
 			}else{
 				file_modal.show();
@@ -180,6 +184,7 @@
 				if ( shared ){
 					location.href = "/";
 				}else{
+					$("#file-button").text("ファイルを選択");
 					file_modal.show();
 				}
 			});
@@ -269,6 +274,8 @@
 				var min_alt, max_alt;
 				
 				toggleInfo();
+
+				console.log(json);
 				
 				$("#file-name").text(json.name);
 				$("#info-modal-dialog h3").text(json.name);
@@ -307,7 +314,7 @@
 					]);
 				}
 
-				return json;
+				return JSON.stringify(json);
 			}
 
 
