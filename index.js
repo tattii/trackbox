@@ -40,7 +40,6 @@ app.get('/get', function (req, res) {
 				console.error(err);
 				res.send("Error " + err);
 			}else{
-				console.log(result.rows);
 				res.send(result.rows[0].data);
 			}
 		});
@@ -72,7 +71,7 @@ app.post('/post', function (req, res) {
 
 		function insertData(id) {
 			console.log(id)
-			client.query('INSERT INTO track_table (id, data) VALUES ($1, $2)', [id, data], function(err, result) {
+			client.query('INSERT INTO track_table (id, data) VALUES ($1, $2)', [id, JSON.stringify(data)], function(err, result) {
 				done();
 				if (err) {
 					console.error(err);
