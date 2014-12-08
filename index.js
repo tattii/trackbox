@@ -71,7 +71,7 @@ app.post('/post', function (req, res) {
 		}
 
 		function insertData(id) {
-			console.log([id, data])
+			console.log(id)
 			client.query('INSERT INTO track_table (id, data) VALUES ($1, $2)', [id, data], function(err, result) {
 				done();
 				if (err) {

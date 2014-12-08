@@ -204,7 +204,6 @@
 			$("#share-button").click(function(){
 				$("#share-button").text("送信中....");
 
-				console.log(track2json());
 				$.ajax({
 					type: "POST",
 					url: "/post",
@@ -213,6 +212,8 @@
 					success: function(data) {
 						console.log(data);
 						shared = true;
+						track_id = data.id;
+						$("#link-modal input").val(host + "/track/" + track_id);
 						$.UIkit.modal("#link-modal").show();
 					},
 					error: function() {
