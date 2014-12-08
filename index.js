@@ -62,6 +62,8 @@ app.post('/post', function (req, res) {
 
 		var data = req.body;
 		var id = generateID();
+
+		 console.log([id, data])
 		client.query('INSERT INTO track_table (id, data) VALUES ($1, $2)', [id, data], function(err, result) {
 			done();
 			if (err) {
