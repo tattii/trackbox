@@ -5,23 +5,55 @@ var pg = require('pg');
 app.set('port', (process.env.PORT || 5000));
 app.use(express.static(__dirname + '/public'));
 
-app.get('/', function(request, response) {
-  response.send('Hello World!');
+app.set('view engine', 'ejs');
+
+
+app.get('/', function(req, res) {
+	res.render('index', {
+		shared: false,
+		track_id: 0
+	});
+});
+
+app.get('/track/:id', function(req, res) {
+	res.render('index', {
+		shared: true,
+		track_id: req.param.id
+	});
 });
 
 
-app.get('/db', function (request, response) {
+app.get('/get', function (req, res) {
 	pg.connect(process.env.DATABASE_URL, function(err, client, done) {
-		client.query('SELECT * FROM test_table', function(err, result) {
+		var id = req.param.id;
+		client.query('SELECT * FROM track_table where id=$1', [id], function(err, result) {
 			done();
-			if (err)
-		{ console.error(err); response.send("Error " + err); }
-			else
-		{ response.send(result.rows); }
+			if (err) {
+				console.error(err);
+				response.send("Error " + err);
+			}else{
+				response.send(result.rows);
+			}
 		});
 	});
 })
 
+
+app.post('/post', function (req, res) {
+	pg.connect(process.env.DATABASE_URL, function(err, client, done) {
+		var data = req.body;
+		console.log(data);
+		client.query('', [id], function(err, result) {
+			done();
+			if (err) {
+				console.error(err);
+				response.send("Error " + err);
+			}else{
+				response.send(result.rows);
+			}
+		});
+	});
+})
 
 app.listen(app.get('port'), function() {
   console.log("Node app is running at localhost:" + app.get('port'));

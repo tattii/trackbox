@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset=utf-8 />
+	<title>Track Box</title>
+	<meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+	<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css" />
+	<link rel="stylesheet" href="/uikit-2.8.0/uikit.almost-flat.min.css" />
+	<link rel="stylesheet" href="/app.css" />
+</head>
+
+<body>
+	<div id="container">
+		<div class="uk-button-dropdown" data-uk-dropdown>
+			<button id="plane" class="uk-icon-button uk-icon-paper-plane-o"></button>
+
+			<div id="dropdown" class="uk-dropdown">
+				<ul class="uk-nav uk-nav-dropdown">
+					<li id="new"><a href="#"><i class="uk-icon-file-o"></i>New</a></li>
+					<li id="share"><a href="#"><i class="uk-icon-link"></i>Share</a></li>
+					<!-- <li id="download"><a href="#"><i class="uk-icon-download"></i>Download</a></li> -->
+				</ul>
+			</div>
+		</div>
+
+		<div id="file-name"></div>
+
+		<div id="map"></div>
+
+		<button id="graph-button" class="uk-icon-button uk-icon-bar-chart-o" data-uk-modal="{target:'#info-modal'}"></button>
+
+		<div id="bottom"></div>
+	</div>
+
+	<div id="info-modal" class="uk-modal">
+		<div class="uk-modal-dialog" id="info-modal-dialog">
+			<a class="uk-modal-close uk-close"></a>
+			<h3></h3>
+
+			<div id="info">
+				<div id="chart-container">
+					<div id="chart"></div>
+				</div>
+
+				<div id="summary">
+					<table class="uk-table uk-table-hover">
+						<tr>
+							<th>Time</th>
+							<td id="time"></td>
+						</tr>
+						<tr>
+							<th>Track</th>
+							<td id="track"></td>
+						</tr>
+						<tr>
+							<th>Distance</th>
+							<td id="distance"></td>
+						</tr>
+						<tr>
+							<th>Avg Speed</th>
+							<td id="avg-speed"></td>
+						</tr>
+						<tr>
+							<th>Max Speed</th>
+							<td id="max-speed"></td>
+						</tr>
+						<tr>
+							<th>Min Altitude</th>
+							<td id="min-alt"></td>
+						</tr>
+						<tr>
+							<th>Max Altitude</th>
+							<td id="max-alt"></td>
+						</tr>
+					</table>
+
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div id="file-modal" class="uk-modal">
+		<button id="plane" class="uk-icon-button uk-icon-paper-plane-o uk-modal-close"></button>
+		<div class="uk-modal-dialog plane-modal" id="file-modal-dialog">
+			<a class="uk-modal-close uk-close"></a>
+			<h3>GPXファイルを選択して下さい</h3>
+			<button class="uk-button uk-button-primary" type="button" id="file-button">ファイルを選択</button>
+			<input type="file" id="file" />
+		</div>
+	</div>
+
+	<div id="link-modal" class="uk-modal">
+		<button id="plane" class="uk-icon-button uk-icon-paper-plane-o uk-modal-close"></button>
+		<div class="uk-modal-dialog plane-modal" id="link-modal-dialog">
+			<a class="uk-modal-close uk-close"></a>
+			<h3>この航跡へのリンク</h3>
+			<form class="uk-form">
+				<input type="text" value="" disabled>
+			</form>
+		</div>
+	</div>
+
+	<div id="share-modal" class="uk-modal">
+		<button id="plane" class="uk-icon-button uk-icon-paper-plane-o uk-modal-close"></button>
+		<div class="uk-modal-dialog plane-modal" id="share-modal-dialog">
+			<a class="uk-modal-close uk-close"></a>
+			<h3>この航跡を共有しますか?</h3>
+			<button class="uk-button uk-button-primary" type="button" id="share-button">共有する</button>
+		</div>
+	</div>
+
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+	<script src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
+	<script src="http://code.highcharts.com/highcharts.js"></script>
+	<script src="/uikit-2.8.0/uikit.min.js"></script>
+	<script>
+		$(function(){
+			var track;
+			var isMobile;
+			var shared = <%= shared %>;
+			var track_id = <%= track_id %>;
+			var host = "http://localhost:5000";
+
+			// onload ----------------------------------------------------------
+			var googleHybrid = L.tileLayer(
+				"http://mt{s}.google.com/vt/lyrs=y&hl=ja&x={x}&y={y}&z={z}",
+				{ subdomains: [0,1,2,3] }
+			);
+
+			var map = L.map('map', {
+				center: [36.204824, 138.252924],
+				zoom: 5,
+				layers: [ googleHybrid ],
+				attributionControl: false
+			});
+
+
+			if ( L.Browser.mobile || $(document).width() < 640 ){
+				isMobile = true;
+				map.zoomControl.removeFrom(map);
+				$("#dropdown").remove();
+
+			}else{
+				isMobile = false;
+				map.zoomControl.setPosition("bottomleft");
+				$("#graph-button").hide();
+
+			}
+
+			
+			var file_modal = $.UIkit.modal("#file-modal");
+			if ( shared ){
+				$.ajax("/2014-11-31.json").done(parseJSON);
+
+			}else{
+				file_modal.show();
+			}
+
+			// events ----------------------------------------------------------
+			$("#file").change(function(e){
+				var file = e.target.files[0];
+				var reader = new FileReader;
+				$("#file-button").text("読み込み中.......");
+
+				reader.onload = function(e) {
+					var result = e.target.result;
+					file_modal.hide();
+					$("#file-name").text(file.name);
+					parseGPX(result);
+				};
+
+				reader.readAsText(file);
+			});
+
+			$("#file-button").on("click", function(){
+				$("#file").click();
+			});
+
+			$("#new").click(function(){
+				if ( shared ){
+					location.href = "/";
+				}else{
+					file_modal.show();
+				}
+			});
+
+
+			$("#share").click(function(){
+				if ( shared ){
+					$("#link-modal input").val(host + "/track/" + track_id);
+					$.UIkit.modal("#link-modal").show();
+				}else{
+					$("#share-button").text("共有する");
+					$.UIkit.modal("#share-modal").show();
+				}
+			});
+
+			$("#share-button").click(function(){
+				$("#share-button").text("送信中....");
+
+				console.log(track2json());
+				$.ajax({
+					type: "POST",
+					url: "/post",
+					dataType: "json",
+					data: track2json(),
+					success: function(data) {
+						console.log(data);
+						shared = true;
+						$.UIkit.modal("#link-modal").show();
+					},
+					error: function() {
+						alert("error!");
+					}
+				});
+			});
+
+
+			function toggleInfo() {
+				if ( !isMobile ){
+					$("#bottom").append($("#info"));
+					$("#map").css({ bottom: "200px" });
+					$("#bottom").css({ height: "200px" });
+				}
+			}
+
+
+
+
+
+			//-----------------------------------------------------------------
+			function parseGPX(gpx){
+				track = [];
+				var min_alt, max_alt;
+
+				if ( $(gpx).find("trkpt").length == 0 ){
+					alert("ファイルを読み込めません。");
+					return;
+
+				}else{
+					toggleInfo();
+
+					map.eachLayer(function(layer){
+						map.removeLayer(layer);	
+					});
+					map.addLayer(googleHybrid);
+
+					$(gpx).find("trkpt").each(function() {
+						var altitude = parseInt( $(this).find("ele").text() );
+						min_alt = (min_alt == undefined) ? altitude : (min_alt > altitude) ? altitude : min_alt;
+						max_alt = (max_alt == undefined) ? altitude : (max_alt < altitude) ? altitude : max_alt;
+						var time = Date.parse( $(this).find("time").text() );
+
+						track.push({
+							lat: parseFloat( $(this).attr("lat")),
+							lng: parseFloat( $(this).attr("lon") ),
+							altitude: altitude,
+							time: time
+						});
+
+					});
+
+					drawPath(min_alt, max_alt);
+				}
+			}
+
+			function parseJSON(json){
+				track = [];
+				var min_alt, max_alt;
+				
+				toggleInfo();
+				
+				$("#file-name").text(json.name);
+				$("#info-modal-dialog h3").text(json.name);
+
+				for (var i=0; i < json.track.length; i++){
+					var trkp = json.track[i];
+					var altitude = trkp[2];
+					min_alt = (min_alt == undefined) ? altitude : (min_alt > altitude) ? altitude : min_alt;
+					max_alt = (max_alt == undefined) ? altitude : (max_alt < altitude) ? altitude : max_alt;
+
+					track.push({
+						lat: trkp[0],
+						lng: trkp[1],
+						altitude: altitude,
+						time: trkp[3] * 1000
+					});
+
+				}
+
+				drawPath(min_alt, max_alt);
+			}
+
+
+			function track2json() {
+				var json = {
+					name: $("#file-name").text(),
+					track: []
+				};
+
+				for (var i=0; i < track.length; i++){
+					json.track.push([
+						track[i].lat,
+						track[i].lng,
+						track[i].altitude,
+						track[i].time / 1000
+					]);
+				}
+
+				return json;
+			}
+
+
+			function pad(n) { return n<10 ? '0'+n : n; }
+
+			function drawPath(min_alt, max_alt) {
+				var path2 = L.polyline([[ track[0].lat, track[1].lng ]], { wight: 0 });
+
+				var max_alt_up = Math.ceil(max_alt/100)*100;
+				var track_dis = 0;
+				var max_speed = 0;
+
+				var data_alt = [];
+				var data_speed = [];
+
+				for (var i = 0; i < track.length - 1; i++){
+					var path = new L.polyline(
+						[
+							[ track[ i ].lat, track[ i ].lng ],
+							[ track[i+1].lat, track[i+1].lng ]
+						],
+						{
+							color: gradient( (track[i].altitude - min_alt) / (max_alt_up - min_alt) ),
+							weight: 5,
+							opacity: 1,
+						}
+					).addTo(map);
+
+					path2.addLatLng([ track[i+1].lat, track[i+1].lng ]);
+					var t_i =  track[i].time;
+					var d = L.latLng([ track[ i ].lat, track[ i ].lng ]).distanceTo([ track[i+1].lat, track[i+1].lng ]);
+					var t = track[i+1].time - t_i;
+					var speed = d / t * 1000;
+
+					var date = new Date(track[i].time);
+					path.bindPopup(
+						pad(date.getHours()) + ":" + pad(date.getMinutes()) + ":" + pad(date.getSeconds()) + "<br>" +
+						"altitude: " + Math.round(track[i].altitude) + " m<br>" +
+						"spped:" + Math.round(speed*10)/10 + " m/s"
+					);
+					track_dis += d;
+					max_speed = (speed > max_speed) ? speed : max_speed;
+
+					t_i += 9 * 3600 * 1000;
+					track[i].date = t_i;
+					data_alt.push([t_i, track[i].altitude ]);
+					data_speed.push([t_i, Math.round(speed*10)/10]);
+				}
+
+				map.fitBounds(path2.getBounds(), (isMobile) ? {} : { paddingBottomRight: [0, 200] });
+
+				// summary
+				var last = track.length - 1;
+				var distance = L.latLng([ track[0].lat, track[0].lng ]).distanceTo([ track[last].lat, track[last].lng ]);
+				var time = track[last].time - track[0].time;
+				var t = new Date(time);
+				var avg_speed = track_dis / time * 1000;
+
+
+				console.log(last);
+
+				$("#time").html(pad(t.getUTCHours()) + ":" + pad(t.getUTCMinutes()) + ":" + pad(t.getUTCSeconds()));
+				$("#track").html( Math.round(track_dis/100) /10 + "<span>km</span>");
+				$("#distance").html( Math.round(distance/100) /10 + "<span>km</span>");
+				$("#avg-speed").html( Math.round(avg_speed*10) /10 + "<span>m/s</span>");
+				$("#max-speed").html( Math.round(max_speed*10) /10 + "<span>m/s</span>");
+				$("#min-alt").html( Math.round(min_alt) + "<span>m</span>");
+				$("#max-alt").html( Math.round(max_alt) + "<span>m</span>");
+				
+
+				drawChart(data_alt, data_speed, track);
+			}
+
+
+
+			//-----------------------------------------------------------------
+			var grad = [
+				{ value:0.00, r:0,   g:0,   b:255 },
+				{ value:0.25, r:0,   g:255, b:255 },
+				{ value:0.50, r:0,   g:255, b:0   },
+				{ value:0.75, r:255, g:255, b:0   },
+				{ value:1.00, r:255, g:0,   b:0   }
+			];
+
+			function gradient(x) {
+				var pivot;
+				for (pivot = 0; pivot < grad.length; pivot++){
+					if ( x < grad[pivot].value ){
+						break;
+					}
+				}
+
+				var l = grad[pivot-1];
+				var r = grad[pivot];
+				var delta = (x - grad[pivot-1].value) / (grad[pivot].value - grad[pivot-1].value);
+
+				var color = {
+					r: Math.round( (r.r - l.r) * delta + l.r ),
+					g: Math.round( (r.g - l.g) * delta + l.g ),
+					b: Math.round( (r.b - l.b) * delta + l.b )
+				};
+
+				return "#" + _doubleHex(color.r) + _doubleHex(color.g) + _doubleHex(color.b);
+			}
+
+			function _doubleHex(x) {
+				return ( x < 16 ) ? "0" + x.toString(16) : x.toString(16);
+			}
+
+
+			//-----------------------------------------------------------------
+			function drawChart(data_alt, data_speed, track) {
+				var marker = L.marker();
+
+
+				$('#chart').highcharts({
+					chart: {
+						zoomType: 'x',
+						width: (isMobile) ? $(document).width() : $(document).width() - 250,
+						height: (isMobile) ? 200 : 190
+					},
+					title: {
+						text: ""  
+					},
+					xAxis: {
+						type: 'datetime',
+					},
+					yAxis: [{
+						title: "",
+						labels: {
+							align: "left",
+							x: 0,
+							y: -2,
+							style: { "font-size": 7 }
+						},
+						min: 0
+					},{
+						title: "",
+						labels: {
+							align: "left",
+							x: -10,
+							y: -2,
+							style: { "font-size": 7 }    
+						},
+						opposite: true,
+						min: 0,
+						minRange: 10
+					}],
+					legend: {
+						enabled: !isMobile,
+						align: "left",
+						layout: "vertical",
+						verticalAlign: "middle"
+					},
+					credits: {
+						enabled: false  
+					},
+					tooltip: {
+						xDateFormat: '%H:%M:%S',
+						shared: true
+					},
+
+					series: [{
+						type: 'line',
+						name: 'altitude(m)',
+						color: "#3498db",
+						yAxis: 0,
+						marker: {
+							enabled: false
+						},
+						data: data_alt
+					},{
+						type: 'line',
+						name: 'speed(m/s)',
+						color: "#e74c3c",
+						yAxis: 1,
+						marker: {
+							enabled: false
+						},
+						data: data_speed
+					}],
+
+					plotOptions: {
+						series: {
+							point: {
+								events: (isMobile) ? {} : {
+									mouseOver: function() {
+										var t = this.x;
+										for (var i = 0; i < track.length-1; i++){
+											if ( track[i].date == t ){
+												break;
+											}
+										}
+										var target = track[i];
+
+										marker.setLatLng([target.lat, target.lng]);
+										marker.addTo(map);
+									},
+									mouseOut: function() {
+										map.removeLayer(marker);
+									}
+								}
+							}
+						}
+					}
+
+				});
+			}
+
+
+
+
+
+		});
+	</script>
+
+</body>
+</html>
