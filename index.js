@@ -43,8 +43,6 @@ app.get('/get', function (req, res) {
 
 app.post('/post', function (req, res) {
 	pg.connect(process.env.DATABASE_URL, function(err, client, done) {
-		console.log(data);
-		
 		function generateID() {
 			var id = Math.random().toString(36).slice(-8);
 			client.query('SELECT * FROM track_table where id=$1', [id], function(err, result) {
