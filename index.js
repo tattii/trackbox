@@ -26,12 +26,14 @@ app.get('/track/:id', function(req, res) {
 app.get('/get', function (req, res) {
 	pg.connect(process.env.DATABASE_URL, function(err, client, done) {
 		var id = req.param.id;
+		console.log(id);
 		client.query('SELECT * FROM track_table where id=$1', [id], function(err, result) {
 			done();
 			if (err) {
 				console.error(err);
 				res.send("Error " + err);
 			}else{
+				console.log(result.rows);
 				res.send(result.rows);
 			}
 		});
