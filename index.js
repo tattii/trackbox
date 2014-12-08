@@ -52,7 +52,7 @@ app.post('/post', function (req, res) {
 					console.error(err);
 					res.send("Error " + err);
 				}else{
-					if ( result.rows ){
+					if ( result.rows.length > 1 ){
 						return generateID();
 					}else{
 						return id;
