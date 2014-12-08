@@ -50,7 +50,7 @@ app.get('/get', function (req, res) {
 app.post('/post', function (req, res) {
 	pg.connect(process.env.DATABASE_URL, function(err, client, done) {
 		var data = req.body;
-		console.log(JSON.stringify(data));
+		console.log(data);
 		generateID();
 
 		function generateID() {
@@ -72,7 +72,7 @@ app.post('/post', function (req, res) {
 
 		function insertData(id) {
 			console.log(id)
-			client.query('INSERT INTO track_table (id, data) VALUES ($1, $2)', [id, JSON.stringify(data)], function(err, result) {
+			client.query('INSERT INTO track_table (id, data) VALUES ($1, $2)', [id, data], function(err, result) {
 				done();
 				if (err) {
 					console.error(err);
