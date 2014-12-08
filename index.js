@@ -50,9 +50,11 @@ app.get('/get', function (req, res) {
 
 app.post('/post', function (req, res) {
 	pg.connect(process.env.DATABASE_URL, function(err, client, done) {
+		var data = req.body;
+		generateID();
+
 		function generateID() {
 			var id = Math.random().toString(36).slice(-8);
-		 console.log(id)
 			client.query('SELECT * FROM track_table where id=$1', [id], function(err, result) {
 				done();
 				if (err) {
@@ -60,27 +62,26 @@ app.post('/post', function (req, res) {
 					res.send("Error " + err);
 				}else{
 					if ( result.rows.length > 1 ){
-						return generateID();
+						generateID();
 					}else{
-						return id;
+						insertData(id);
 					}
 				}
 			});
 		}
 
-		var data = req.body;
-		var id = generateID();
-
-		 console.log([id, data])
-		client.query('INSERT INTO track_table (id, data) VALUES ($1, $2)', [id, data], function(err, result) {
-			done();
-			if (err) {
-				console.error(err);
-				res.send("Error " + err);
-			}else{
-				res.send(id);
-			}
-		});
+		function insertData(id) {
+			console.log([id, data])
+			client.query('INSERT INTO track_table (id, data) VALUES ($1, $2)', [id, data], function(err, result) {
+				done();
+				if (err) {
+					console.error(err);
+					res.send("Error " + err);
+				}else{
+					res.send(id);
+				}
+			});
+		}
 	});
 })
 
