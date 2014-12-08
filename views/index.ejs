@@ -153,7 +153,8 @@
 				$.ajax({
 					type: "GET",
 					url: "/get",
-					data: { id: track_id }
+					data: { id: track_id },
+					dataType: "json"
 				}).done(parseJSON);
 
 			}else{
@@ -272,7 +273,12 @@
 			function parseJSON(json){
 				track = [];
 				var min_alt, max_alt;
-				
+
+				if (! json.track ){
+					alert("error!");
+					return;
+				}
+		
 				toggleInfo();
 
 				console.log(json);

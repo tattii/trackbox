@@ -43,20 +43,39 @@ app.get('/get', function (req, res) {
 
 app.post('/post', function (req, res) {
 	pg.connect(process.env.DATABASE_URL, function(err, client, done) {
-		var data = req.body;
 		console.log(data);
-		client.query('', [id], function(err, result) {
+		
+		function generateID() {
+			var id = Math.random().toString(36).slice(-8);
+			client.query('SELECT * FROM track_table where id=$1', [id], function(err, result) {
+				done();
+				if (err) {
+					console.error(err);
+					res.send("Error " + err);
+				}else{
+					if ( result.rows ){
+						return generateID();
+					}else{
+						return id;
+					}
+				}
+			});
+		}
+
+		var data = req.body;
+		var id = generateID();
+		client.query('INSERT INTO track_table (id, data) VALUES ($1, $2)', [id, data], function(err, result) {
 			done();
 			if (err) {
 				console.error(err);
 				response.send("Error " + err);
 			}else{
-				response.send(result.rows);
+				response.send(id);
 			}
 		});
 	});
 })
 
 app.listen(app.get('port'), function() {
-  console.log("Node app is running at localhost:" + app.get('port'));
+ 	console.log("Node app is running at localhost:" + app.get('port'));
 });
