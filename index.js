@@ -68,9 +68,9 @@ app.post('/post', function (req, res) {
 			done();
 			if (err) {
 				console.error(err);
-				response.send("Error " + err);
+				res.send("Error " + err);
 			}else{
-				response.send(id);
+				res.send(id);
 			}
 		});
 	});
