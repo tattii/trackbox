@@ -78,7 +78,7 @@ app.post('/post', function (req, res) {
 					console.error(err);
 					res.send("Error " + err);
 				}else{
-					res.send(id);
+					res.send({ id: id });
 				}
 			});
 		}
