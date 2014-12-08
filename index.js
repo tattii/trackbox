@@ -18,14 +18,14 @@ app.get('/', function(req, res) {
 app.get('/track/:id', function(req, res) {
 	res.render('index', {
 		shared: true,
-		track_id: req.param.id
+		track_id: req.param("id")
 	});
 });
 
 
 app.get('/get', function (req, res) {
 	pg.connect(process.env.DATABASE_URL, function(err, client, done) {
-		var id = req.param.id;
+		var id = req.param("id");
 		console.log(id);
 		client.query('SELECT * FROM track_table where id=$1', [id], function(err, result) {
 			done();
@@ -34,7 +34,7 @@ app.get('/get', function (req, res) {
 				res.send("Error " + err);
 			}else{
 				console.log(result.rows);
-				res.send(result.rows);
+				res.send(result.rows[0].data);
 			}
 		});
 	});
