@@ -76,6 +76,10 @@
 
 				</div>
 			</div>
+
+			<div id="footer">
+				created by <a href="https://twitter.com/tattii88">@tattii88</a>
+			</div>
 		</div>
 	</div>
 
@@ -124,6 +128,7 @@
 			var shared = <%= shared %>;
 			var track_id = "<%= track_id %>";
 			var host = "http://trackbox.herokuapp.com";
+			var created = 'created by <a href="https://twitter.com/tattii88">@tattii88</a>';
 
 			// onload ----------------------------------------------------------
 			var googleHybrid = L.tileLayer(
@@ -135,18 +140,20 @@
 				center: [36.204824, 138.252924],
 				zoom: 5,
 				layers: [ googleHybrid ],
-				attributionControl: false
 			});
 
 
 			if ( L.Browser.mobile || $(document).width() < 640 ){
 				isMobile = true;
 				map.zoomControl.removeFrom(map);
+				map.attributionControl.removeFrom(map);
 				$("#dropdown").remove();
 
 			}else{
 				isMobile = false;
 				map.zoomControl.setPosition("bottomleft");
+				map.attributionControl.setPrefix(false);
+				map.attributionControl.addAttribution(created);
 				$("#graph-button").hide();
 
 			}
