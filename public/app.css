@@ -149,8 +149,8 @@ html, body { margin:0; padding:0; -webkit-touch-callout:none; }
 
 
 #info-modal-dialog #chart-continer {
-	width: 100%; height: 250px;
-	margin-top: 30px;
+	width: 100%; height: 245px;
+	margin-top: 25px;
 }
 
 #info-modal-dialog #chart {
