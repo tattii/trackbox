@@ -165,6 +165,10 @@
 				}).done(parseJSON);
 
 			}else{
+				if ( isMobile ){
+					$("#file-modal-dialog").html("モバイルブラウザには対応していませんm(__)m")
+						.css({ left: "10px", width: "100%" });
+				}
 				file_modal.show();
 			}
 
