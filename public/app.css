@@ -145,13 +145,13 @@ html, body { margin:0; padding:0; -webkit-touch-callout:none; }
 #info-modal-dialog h3 {
 	margin-top: 10px;
 	margin-left: 10px
-	margin-bottom: 5px;
+	margin-bottom: 10px;
 }
 
 
 #info-modal-dialog #chart-continer {
 	width: 100%; height: 240px;
-	margin-top: 10px;
+	margin-top: 0;
 }
 
 #info-modal-dialog #chart {
