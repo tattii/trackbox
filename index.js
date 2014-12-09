@@ -50,7 +50,6 @@ app.get('/get', function (req, res) {
 app.post('/post', function (req, res) {
 	pg.connect(process.env.DATABASE_URL, function(err, client, done) {
 		var data = req.body.data;
-		console.log(data);
 		generateID();
 
 		function generateID() {
