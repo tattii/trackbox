@@ -40,7 +40,11 @@ app.get('/get', function (req, res) {
 				console.error(err);
 				res.send("Error " + err);
 			}else{
-				res.send(result.rows[0].data);
+				if ( result.rows.length > 0 ){
+					res.send(result.rows[0].data);
+				}else{
+					res.send("Error not found");
+				}
 			}
 		});
 	});
