@@ -208,7 +208,7 @@
 					type: "POST",
 					url: "/post",
 					dataType: "json",
-					data: track2json(),
+					data: { data: track2json() },
 					success: function(data) {
 						console.log(data);
 						shared = true;
