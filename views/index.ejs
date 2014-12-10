@@ -369,7 +369,7 @@
 							[ track[i+1].lat, track[i+1].lng ]
 						],
 						{
-							color: gradient( (track[i].altitude - min_alt) / (max_alt_up - min_alt) ),
+							color: gradient( (max_alt_up-min_alt == 0) ? 0 : (track[i].altitude - min_alt) / (max_alt_up - min_alt) ),
 							weight: 5,
 							opacity: 1,
 						}
