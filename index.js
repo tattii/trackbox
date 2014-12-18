@@ -2,7 +2,8 @@ var express = require('express');
 var app = express();
 var pg = require('pg');
 var bodyParser = require('body-parser');
-var multer = require('multer'); 
+var multer = require('multer');
+require('newrelic');
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
