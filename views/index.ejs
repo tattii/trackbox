@@ -468,7 +468,9 @@
 					chart: {
 						zoomType: 'x',
 						width: (isMobile) ? $(document).width() : $(document).width() - 250,
-						height: (isMobile) ? 200 : 190
+						height: ($(document).height <= 460 ) ? 160 
+									            : (isMobile) ? 200
+												             : 190
 					},
 					title: {
 						text: ""  
