@@ -462,13 +462,16 @@
 			//-----------------------------------------------------------------
 			function drawChart(data_alt, data_speed, track) {
 				var marker = L.marker();
-
+			
+				if ( $(document).height() <= 460 ){
+					$("#chart-container").css({ height: "180px" });
+				}
 
 				$('#chart').highcharts({
 					chart: {
 						zoomType: 'x',
 						width: (isMobile) ? $(document).width() : $(document).width() - 250,
-						height: ($(document).height <= 460 ) ? 160 
+						height: ($(document).height() <= 460 ) ? 160 
 									            : (isMobile) ? 200
 												             : 190
 					},
