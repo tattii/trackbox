@@ -4,6 +4,7 @@ var pg = require('pg');
 var bodyParser = require('body-parser');
 var multer = require('multer');
 
+app.use(bodyParser({limit: '1mb'}));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(multer());
@@ -13,7 +14,6 @@ app.set('port', (process.env.PORT || 5000));
 app.use(express.static(__dirname + '/public'));
 
 app.set('view engine', 'ejs');
-app.use(express.bodyParser({limit: '1mb'}));
 
 
 app.get('/', function(req, res) {
