@@ -436,13 +436,14 @@
 			function gradient(x) {
 				var pivot;
 				for (pivot = 1; pivot < grad.length; pivot++){
-					if ( x < grad[pivot].value ){
+					if ( x <= grad[pivot].value ){
 						break;
 					}
 				}
 
 				var l = grad[pivot-1];
 				var r = grad[pivot];
+
 				var delta = (x - grad[pivot-1].value) / (grad[pivot].value - grad[pivot-1].value);
 
 				var color = {
