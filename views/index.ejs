@@ -376,9 +376,13 @@
 					).addTo(map);
 
 					path2.addLatLng([ track[i+1].lat, track[i+1].lng ]);
-					var t_i =  track[i].time;
+					var t_i = track[i].time;
 					var d = L.latLng([ track[ i ].lat, track[ i ].lng ]).distanceTo([ track[i+1].lat, track[i+1].lng ]);
 					var t = track[i+1].time - t_i;
+
+					// bugfix: same time track point
+					if (t == 0) continue;
+
 					var speed = (d / t * 1000 + speed_1 + speed_2) / 3;
 					speed_1 = speed_2;
 					speed_2 = speed;
