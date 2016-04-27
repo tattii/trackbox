@@ -7,11 +7,12 @@
     "start": "node index.js"
   },
   "dependencies": {
+    "body-parser": "1.10.x",
+    "ejs": "1.0.x",
     "express": "~4.9.x",
-	"pg": "4.x",
-	"ejs": "1.0.x",
-	"body-parser": "1.10.x",
-	"multer": "0.1.x"
+    "multer": "0.1.x",
+    "newrelic": "^1.14.2",
+    "pg": "4.x"
   },
   "engines": {
     "node": "0.10.x"

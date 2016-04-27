@@ -2,7 +2,7 @@
 <html>
 <head>
 	<meta charset=utf-8 />
-	<title>Track Box</title>
+	<title>TrackBox</title>
 	<meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
 	<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css" />
 	<link rel="stylesheet" href="/uikit-2.8.0/uikit.almost-flat.min.css" />
@@ -350,6 +350,21 @@
 
 			function pad(n) { return n<10 ? '0'+n : n; }
 
+			// haversine formula 
+			// ref. http://www.movable-type.co.uk/scripts/latlong.html
+			function directTo(p1, p2){
+				var λ1 = p1.lng / 180 * Math.PI;
+				var λ2 = p2.lng / 180 * Math.PI;
+				var φ1 = p1.lat / 180 * Math.PI;
+				var φ2 = p2.lat / 180 * Math.PI;
+
+				var y = Math.sin(λ2 - λ1) * Math.cos(φ2);
+				var x = Math.cos(φ1) * Math.sin(φ2) - 
+					    Math.sin(φ1) * Math.cos(φ2) * Math.cos(λ2 - λ1);
+				var brng = Math.atan2(y, x) / Math.PI * 180;
+				return (brng + 360) % 360;
+			}
+
 			function drawPath(min_alt, max_alt) {
 				var path2 = L.polyline([[ track[0].lat, track[1].lng ]], { wight: 0 });
 
@@ -369,16 +384,20 @@
 							[ track[i+1].lat, track[i+1].lng ]
 						],
 						{
-							color: gradient( (track[i].altitude - min_alt) / (max_alt_up - min_alt) ),
+							color: gradient( (max_alt_up-min_alt == 0) ? 0 : (track[i].altitude - min_alt) / (max_alt_up - min_alt) ),
 							weight: 5,
 							opacity: 1,
 						}
 					).addTo(map);
 
 					path2.addLatLng([ track[i+1].lat, track[i+1].lng ]);
-					var t_i =  track[i].time;
+					var t_i = track[i].time;
 					var d = L.latLng([ track[ i ].lat, track[ i ].lng ]).distanceTo([ track[i+1].lat, track[i+1].lng ]);
 					var t = track[i+1].time - t_i;
+
+					// bugfix: same time track point
+					if (t == 0) continue;
+
 					var speed = (d / t * 1000 + speed_1 + speed_2) / 3;
 					speed_1 = speed_2;
 					speed_2 = speed;
@@ -387,7 +406,8 @@
 					path.bindPopup(
 						pad(date.getHours()) + ":" + pad(date.getMinutes()) + ":" + pad(date.getSeconds()) + "<br>" +
 						"altitude: " + Math.round(track[i].altitude) + " m<br>" +
-						"spped:" + Math.round(speed*10)/10 + " m/s"
+						"speed: " + Math.round(speed*10)/10 + " m/s<br>" +
+						"direction: " + Math.round(directTo(track[i], track[i+1])) + "°"
 					);
 					track_dis += d;
 					max_speed = (speed > max_speed) ? speed : max_speed;
@@ -435,14 +455,15 @@
 
 			function gradient(x) {
 				var pivot;
-				for (pivot = 0; pivot < grad.length; pivot++){
-					if ( x < grad[pivot].value ){
+				for (pivot = 1; pivot < grad.length; pivot++){
+					if ( x <= grad[pivot].value ){
 						break;
 					}
 				}
 
 				var l = grad[pivot-1];
 				var r = grad[pivot];
+
 				var delta = (x - grad[pivot-1].value) / (grad[pivot].value - grad[pivot-1].value);
 
 				var color = {
@@ -462,13 +483,18 @@
 			//-----------------------------------------------------------------
 			function drawChart(data_alt, data_speed, track) {
 				var marker = L.marker();
-
+			
+				if ( $(document).height() <= 460 ){
+					$("#chart-container").css({ height: "180px" });
+				}
 
 				$('#chart').highcharts({
 					chart: {
 						zoomType: 'x',
 						width: (isMobile) ? $(document).width() : $(document).width() - 250,
-						height: (isMobile) ? 200 : 190
+						height: ($(document).height() <= 460 ) ? 160 
+									            : (isMobile) ? 200
+												             : 190
 					},
 					title: {
 						text: ""  

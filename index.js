@@ -2,8 +2,9 @@ var express = require('express');
 var app = express();
 var pg = require('pg');
 var bodyParser = require('body-parser');
-var multer = require('multer'); 
+var multer = require('multer');
 
+app.use(bodyParser({limit: '1mb'}));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(multer());
@@ -32,6 +33,7 @@ app.get('/track/:id', function(req, res) {
 
 app.get('/get', function (req, res) {
 	pg.connect(process.env.DATABASE_URL, function(err, client, done) {
+		if (err) throw (err);
 		var id = req.param("id");
 		console.log(id);
 		client.query('SELECT * FROM track_table where id=$1', [id], function(err, result) {
