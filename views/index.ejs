@@ -350,6 +350,21 @@
 
 			function pad(n) { return n<10 ? '0'+n : n; }
 
+			// haversine formula 
+			// ref. http://www.movable-type.co.uk/scripts/latlong.html
+			function directTo(p1, p2){
+				var λ1 = p1.lng / 180 * Math.PI;
+				var λ2 = p2.lng / 180 * Math.PI;
+				var φ1 = p1.lat / 180 * Math.PI;
+				var φ2 = p2.lat / 180 * Math.PI;
+
+				var y = Math.sin(λ2 - λ1) * Math.cos(φ2);
+				var x = Math.cos(φ1) * Math.sin(φ2) - 
+					    Math.sin(φ1) * Math.cos(φ2) * Math.cos(λ2 - λ1);
+				var brng = Math.atan2(y, x) / Math.PI * 180;
+				return (brng + 360) % 360;
+			}
+
 			function drawPath(min_alt, max_alt) {
 				var path2 = L.polyline([[ track[0].lat, track[1].lng ]], { wight: 0 });
 
@@ -391,7 +406,8 @@
 					path.bindPopup(
 						pad(date.getHours()) + ":" + pad(date.getMinutes()) + ":" + pad(date.getSeconds()) + "<br>" +
 						"altitude: " + Math.round(track[i].altitude) + " m<br>" +
-						"speed:" + Math.round(speed*10)/10 + " m/s"
+						"speed: " + Math.round(speed*10)/10 + " m/s<br>" +
+						"direction: " + Math.round(directTo(track[i], track[i+1])) + "°"
 					);
 					track_dis += d;
 					max_speed = (speed > max_speed) ? speed : max_speed;
